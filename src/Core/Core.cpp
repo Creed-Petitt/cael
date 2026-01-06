@@ -4,12 +4,14 @@
 
 #include "Core.h"
 #include "../Scanner/Scanner.h"
+#include "../AST/AstPrinter/AstPrinter.h"
+#include "../Parser/Parser.h"
+#include "../Interpreter/Interpreter.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
 
-struct Token;
 bool Core::hadError = false;
 
 void Core::runFile(const std::string& path) {
@@ -29,7 +31,8 @@ void Core::runPrompt() {
     std::string line;
     for (;;) {
         std::cout << "> ";
-        if (!std::getline(std::cin, line)) break;
+        if (!std::getline(std::cin, line))
+            break;
         run(line);
         hadError = false;
     }
@@ -39,9 +42,15 @@ void Core::run(const std::string& source) {
     Scanner scanner(source);
     std::vector<Token> tokens = scanner.scanTokens();
 
-    for (const auto& token : tokens) {
-        std::cout << token.toString() << std::endl;
-    }
+    Arena arena;
+    Parser parser(tokens, arena);
+    const int rootIndex = parser.parse();
+
+    if (hadError)
+        return;
+
+    Interpreter interpreter(arena);
+    interpreter.interpret(rootIndex);
 }
 
 void Core::error(const int line, const std::string& message) {
