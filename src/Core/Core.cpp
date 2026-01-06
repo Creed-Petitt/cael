@@ -9,6 +9,7 @@
 #include <sstream>
 #include <vector>
 
+struct Token;
 bool Core::hadError = false;
 
 void Core::runFile(const std::string& path) {
@@ -43,7 +44,7 @@ void Core::run(const std::string& source) {
     }
 }
 
-void Core::error(int line, const std::string& message) {
+void Core::error(const int line, const std::string& message) {
     report(line, "", message);
 }
 
