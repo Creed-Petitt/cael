@@ -6,7 +6,7 @@
 
 #include <iostream>
 #include <ostream>
-#include <stdexcept>
+#include "../Core/Core.h"
 
 int Parser::parse() {
     try {
@@ -148,5 +148,6 @@ Token Parser::consume(TokenType type, const std::string& message) {
 
 Parser::ParseError Parser::error(const Token& token, const std::string& message) {
     std::cerr << "[line " << token.line << "] Error at '" << token.lexeme << "': " << message << std::endl;
+    Core::hadError = true;
     return {};
 }
