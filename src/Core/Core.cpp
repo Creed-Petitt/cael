@@ -40,7 +40,7 @@ void Core::runPrompt() {
 
 void Core::run(const std::string& source) {
     Scanner scanner(source);
-    std::vector<Token> tokens = scanner.scanTokens();
+    const std::vector<Token> tokens = scanner.scanTokens();
 
     Arena arena;
     Parser parser(tokens, arena);
