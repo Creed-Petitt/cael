@@ -12,10 +12,22 @@ int Parser::parse() {
     std::vector<int> statements;
 
     while (!isAtEnd()) {
-        statements.push_back(statement());
+        statements.push_back(declaration());
     }
 
     return arena.addNode(NodeType::STMT_LIST, previous(), previous().literal, statements);
+}
+
+int Parser::declaration() {
+    try {
+        if (match({LET})) {
+            return varDeclaration();
+        }
+        return statement();
+    } catch (const ParseError& e) {
+        synchronize();
+        return -1;
+    }
 }
 
 int Parser::statement() {
@@ -24,6 +36,19 @@ int Parser::statement() {
     }
 
     return expressionStatement();
+}
+
+int Parser::varDeclaration() {
+    const Token name = consume(IDENTIFIER, "Expect variable name.");
+
+    int init = -1;
+    if (match({EQUAL})) {
+        init = expression();
+    }
+
+    consume(SEMICOLON, "Expected ';' after declaration");
+
+    return arena.addNode(NodeType::STMT_VAR_DECL, previous(), previous().literal, {init});
 }
 
 int Parser::echoStatement() {
@@ -131,6 +156,10 @@ int Parser::primary() {
         return arena.addNode(NodeType::GROUPING, previous(), std::monostate{}, {expr});
     }
 
+    if (match({IDENTIFIER})) {
+        return arena.addNode(NodeType::VAR_EXPR, previous(), previous().literal, {});
+    }
+
     throw error(peek(), "Expect expression.");
 }
 
@@ -179,4 +208,28 @@ Parser::ParseError Parser::error(const Token& token, const std::string& message)
     std::cerr << "[line " << token.line << "] Error at '" << token.lexeme << "': " << message << std::endl;
     Core::hadError = true;
     return {};
+}
+
+void Parser::synchronize() {
+    advance();
+
+    while (!isAtEnd()) {
+        if (previous().type == SEMICOLON) return;
+
+        switch (peek().type) {
+            case CLASS:
+            case FN:
+            case LET:
+            case FOR:
+            case IF:
+            case WHILE:
+            case ECHO:
+            case RETURN:
+                return;
+            default:
+                break;
+        }
+
+        advance();
+    }
 }

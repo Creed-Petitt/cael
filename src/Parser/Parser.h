@@ -20,8 +20,7 @@ public:
     };
 
     Parser(const std::vector<Token>& tokens, Arena& arena)
-        : tokens(tokens), arena(arena) {
-    }
+        : tokens(tokens), arena(arena) {}
 
     int parse();
 
@@ -29,9 +28,13 @@ private:
     const std::vector<Token>& tokens;
     Arena& arena;
     int current = 0;
+
+    int declaration();
+    int varDeclaration();
     int statement();
     int echoStatement();
     int expressionStatement();
+
     int expression();
     int equality();
     int comparison();
@@ -39,6 +42,8 @@ private:
     int factor();
     int unary();
     int primary();
+
+    void synchronize();
 
     bool match(std::initializer_list<TokenType> types);
     bool check(TokenType type) const;
