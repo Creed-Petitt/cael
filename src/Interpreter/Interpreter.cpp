@@ -7,8 +7,7 @@
 
 void Interpreter::interpret(const int rootIndex) {
     try {
-        const Literal value = evaluate(rootIndex);
-        std::cout << stringify(value) << std::endl;
+        execute(rootIndex);
     } catch (const RuntimeError& error) {
         std::cerr << "Runtime Error: " << error.what() << "\n[line " << error.token.line << "]" << std::endl;
     }
@@ -149,4 +148,30 @@ std::string Interpreter::stringify(const Literal& value) {
 
     if (std::holds_alternative<std::string>(value)) return std::get<std::string>(value);
     return "unknown";
+}
+
+void Interpreter::execute(const int index) {
+    const Node& node = arena.get(index);
+
+    switch (node.type) {
+        case NodeType::STMT_LIST:
+            for (const int childIndex : node.children) {
+                execute(childIndex);
+            }
+            break;
+
+        case NodeType::STMT_ECHO: {
+            const Literal value = evaluate(node.children[0]);
+            std::cout << stringify(value) << std::endl;
+            break;
+        }
+
+        case NodeType::STMT_EXPR:
+            evaluate(node.children[0]);
+            break;
+
+        default:
+            evaluate(index);
+            break;
+    }
 }

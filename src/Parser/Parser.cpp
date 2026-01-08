@@ -9,17 +9,35 @@
 #include "../Core/Core.h"
 
 int Parser::parse() {
-    try {
-        const int result = expression();
+    std::vector<int> statements;
 
-        if (!isAtEnd()) {
-            throw error(peek(), "Expected EOF, found extra tokens.");
-        }
-
-        return result;
-    } catch (const ParseError& error) {
-        return -1;
+    while (!isAtEnd()) {
+        statements.push_back(statement());
     }
+
+    return arena.addNode(NodeType::STMT_LIST, previous(), previous().literal, statements);
+}
+
+int Parser::statement() {
+    if (match({ECHO})) {
+        return echoStatement();
+    }
+
+    return expressionStatement();
+}
+
+int Parser::echoStatement() {
+    int expr = expression();
+    consume(SEMICOLON, "Expected ';' after value");
+
+    return arena.addNode(NodeType::STMT_ECHO, previous(), previous().literal, {expr});
+}
+
+int Parser::expressionStatement() {
+    int expr = expression();
+    consume(SEMICOLON, "Expected ';' after value");
+
+    return arena.addNode(NodeType::STMT_EXPR, previous(), previous().literal, {expr});
 }
 
 int Parser::expression() {

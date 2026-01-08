@@ -16,8 +16,9 @@ enum class NodeType {
     GROUPING,
     LITERAL,
     UNARY,
-    STATEMENT,
-    EXPRESSION
+    STMT_LIST,
+    STMT_ECHO,
+    STMT_EXPR,
 };
 
 struct Node {
@@ -35,12 +36,22 @@ struct Node {
 class Arena {
 public:
     int addNode(NodeType type, Token op, Literal value, const std::initializer_list<int> children) {
-        nodes.emplace_back(type, std::move(op), std::move(value), std::move(children));
+        nodes.emplace_back(type, std::move(op), std::move(value), children);
+
+        return static_cast<int>(nodes.size()) - 1;
+    }
+
+    int addNode(NodeType type, Token op, Literal value, const std::vector<int> &children) {
+        nodes.emplace_back(type, std::move(op), std::move(value), children);
 
         return static_cast<int>(nodes.size()) - 1;
     }
 
     Node& get(const int index) {
+        return nodes[index];
+    }
+
+    const Node& get(const int index) const {
         return nodes[index];
     }
 

@@ -10,12 +10,12 @@
 
 class Interpreter {
 public:
-    explicit Interpreter(Arena& arena) : arena(arena) {}
+    explicit Interpreter(const Arena& arena) : arena(arena) {}
 
     void interpret(int rootIndex);
 
 private:
-    Arena& arena;
+    const Arena& arena;
     Literal evaluate(int index);
 
     static Literal visitLiteral(const Node& node);
@@ -28,6 +28,7 @@ private:
     static void checkNumberOperand(const Token& op, const Literal& operand);
     static void checkNumberOperands(const Token& op, const Literal& left, const Literal& right);
     static std::string stringify(const Literal& value) ;
+    void execute(int index);
 };
 
 #endif //CIPR_INTERPRETER_H
