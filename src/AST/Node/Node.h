@@ -16,6 +16,7 @@ enum class NodeType {
     GROUPING,
     LITERAL,
     UNARY,
+    LOGICAL,
     ASSIGN,
     VAR_EXPR,
     STMT_LIST,
@@ -23,6 +24,8 @@ enum class NodeType {
     STMT_EXPR,
     STMT_VAR_DECL,
     STMT_BLOCK,
+    STMT_IF,
+    STMT_WHILE,
 };
 
 struct Node {
