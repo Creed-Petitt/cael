@@ -32,10 +32,12 @@ private:
     int declaration();
     int varDeclaration();
 
+    int consumeCondition(const std::string& name);
     std::vector<int> block();
     int consumeBlock(const std::string& errorMessage);
 
     int ifStatement();
+    int whileStatement();
     int statement();
     int echoStatement();
     int expressionStatement();

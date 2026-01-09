@@ -33,6 +33,9 @@ void Interpreter::execute(const int index) {
         case NodeType::STMT_IF:
             visitIfStmt(node);
             break;
+        case NodeType::STMT_WHILE:
+            visitWhileStmt(node);
+            break;
         default:
             evaluate(index);
             break;
@@ -61,6 +64,12 @@ void Interpreter::visitBlockStmt(const Node& node) {
     const auto blockEnv = std::make_shared<Environment>(environment);
 
     executeBlock(node.children, blockEnv);
+}
+
+void Interpreter::visitWhileStmt(const Node& node) {
+    while (isTruthy(evaluate(node.children[0]))) {
+        execute(node.children[1]);
+    }
 }
 
 void Interpreter::visitIfStmt(const Node& node) {

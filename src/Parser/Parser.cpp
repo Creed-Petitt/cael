@@ -51,11 +51,14 @@ int Parser::statement() {
         return ifStatement();
     }
 
+    if (match({WHILE})) {
+        return whileStatement();
+    }
+
     if (match({LEFT_BRACE})) {
         const std::vector<int> statements = block();
         return arena.addNode(NodeType::STMT_BLOCK, previous(), std::monostate{}, statements);
     }
-
 
     return expressionStatement();
 }
@@ -82,10 +85,22 @@ int Parser::consumeBlock(const std::string& errorMessage) {
     throw error(peek(), errorMessage);
 }
 
+int Parser::consumeCondition(const std::string& name) {
+    consume(LEFT_PAREN, "Expect '(' after '" + name + "' statement.");
+    const int condition = expression();
+    consume(RIGHT_PAREN, "Expect ')' after " + name + " condition.");
+    return condition;
+}
+int Parser::whileStatement() {
+    int condition = consumeCondition("while");
+    int body = consumeBlock("Expect '{' after 'while'");
+
+    return arena.addNode(NodeType::STMT_WHILE, previous(), std::monostate{},
+        {condition, body});
+}
+
 int Parser::ifStatement() {
-    consume(LEFT_PAREN, "Expect '(' after if statement.");
-    int condition = expression();
-    consume(RIGHT_PAREN, "Expect ')' after if statement.");
+    int condition = consumeCondition("if");
 
     int thenBranch = consumeBlock("Expect '{' after if condition.");
 

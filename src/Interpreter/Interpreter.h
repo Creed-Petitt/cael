@@ -35,6 +35,7 @@ private:
     Literal visitLogicalExpr(const Node& node);
 
     void visitBlockStmt(const Node& node);
+    void visitWhileStmt(const Node& node);
     void visitIfStmt(const Node& node);
     void visitEchoStmt(const Node& node);
     void visitExpressionStmt(const Node& node);
