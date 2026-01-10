@@ -421,6 +421,17 @@ int Parser::primary() {
         return arena.addNode(NodeType::GROUPING, previous(), std::monostate{}, {expr});
     }
 
+    if (match({DOLLAR})) {
+        const Token varName = consume(IDENTIFIER, "Expect variable name after $.");
+
+        int argNode = arena.addNode(NodeType::LITERAL, varName, varName.lexeme, {});
+
+        const Token envToken(IDENTIFIER, "env", std::monostate{}, varName.line);
+        int funcNode = arena.addNode(NodeType::VAR_EXPR, envToken, std::monostate{}, {});
+
+        return arena.addNode(NodeType::CALL, previous(), std::monostate{}, {funcNode, argNode});
+    }
+
     if (match({IDENTIFIER})) {
         return arena.addNode(NodeType::VAR_EXPR, previous(), previous().literal, {});
     }
