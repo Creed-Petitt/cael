@@ -62,6 +62,7 @@ void Scanner::scanToken() {
         case '+': addToken(PLUS); break;
         case ';': addToken(SEMICOLON); break;
         case '*': addToken(STAR); break;
+        case '$': addToken(DOLLAR); break;
 
         case '!': addToken(match('=') ? BANG_EQUAL : BANG); break;
         case '=': addToken(match('=') ? EQUAL_EQUAL : EQUAL); break;
@@ -149,9 +150,28 @@ char Scanner::peekNext() const {
 }
 
 void Scanner::string() {
+    std::string value;
     while (peek() != '"' && !isAtEnd()) {
         if (peek() == '\n')
             line++;
+        
+        if (peek() == '\\') {
+            advance(); // consume '\'
+            switch (peek()) {
+                case 'n': value += '\n'; break;
+                case 't': value += '\t'; break;
+                case 'r': value += '\r'; break;
+                case '\\': value += '\\'; break;
+                case '"': value += '"'; break;
+                default: 
+                    // If it's not a known escape, just keep the backslash and the char
+                    value += '\\';
+                    value += peek();
+                    break;
+            }
+        } else {
+            value += peek();
+        }
         advance();
     }
 
@@ -160,9 +180,8 @@ void Scanner::string() {
         return;
     }
 
-    advance();
+    advance(); // The closing "
 
-    std::string value = source_.substr(start + 1, current - start - 2);
     addToken(STRING, value);
 }
 

@@ -7,7 +7,7 @@
 
 std::string tokenTypeName(const TokenType type) {
     static const char* names[] = {
-        "LEFT_PAREN", "RIGHT_PAREN", "LEFT_BRACE", "RIGHT_BRACE",
+        "LEFT_PAREN", "RIGHT_PAREN", "LEFT_BRACE", "RIGHT_BRACE", "DOLLAR",
         "COMMA", "DOT", "MINUS", "PLUS", "SEMICOLON", "SLASH", "STAR",
         "BANG", "BANG_EQUAL", "EQUAL", "EQUAL_EQUAL",
         "GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL",

@@ -16,7 +16,7 @@ struct LiteralVector;
 enum TokenType {
     // Single-character
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, LEFT_BRACKET, RIGHT_BRACKET,
-    COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
+    COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR, DOLLAR,
 
     // One or two character
     BANG, BANG_EQUAL, EQUAL, EQUAL_EQUAL,
