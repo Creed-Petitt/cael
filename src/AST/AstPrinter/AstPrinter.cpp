@@ -49,6 +49,8 @@ std::string AstPrinter::print(const int nodeIdx) {
             return parenthesize(node.op.lexeme, {node.children[0], node.children[1]});
         case NodeType::STMT_IF:
             return parenthesize("if", node.children);
+        case NodeType::STMT_WHILE:
+            return parenthesize("while", node.children);
     }
     return "";
 }

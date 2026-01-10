@@ -55,6 +55,10 @@ int Parser::statement() {
         return whileStatement();
     }
 
+    if (match({FOR})) {
+        return forStatement();
+    }
+
     if (match({LEFT_BRACE})) {
         const std::vector<int> statements = block();
         return arena.addNode(NodeType::STMT_BLOCK, previous(), std::monostate{}, statements);
@@ -91,6 +95,53 @@ int Parser::consumeCondition(const std::string& name) {
     consume(RIGHT_PAREN, "Expect ')' after " + name + " condition.");
     return condition;
 }
+
+int Parser::forStatement() {
+    consume(LEFT_PAREN, "Expect '(' after 'for'.");
+
+    int initializer = -1;
+    if (match({SEMICOLON})) {
+        initializer = -1;
+    } else if (match({LET})) {
+        initializer = varDeclaration();
+    } else {
+        initializer = expressionStatement();
+    }
+
+    int condition = -1;
+    if (!check(SEMICOLON)) {
+        condition = expression();
+    }
+    consume(SEMICOLON, "Expect ';' after loop condition");
+
+    int increment = -1;
+    if (!check(RIGHT_PAREN)) {
+        increment = expression();
+    }
+    consume(RIGHT_PAREN, "Expect ';' after loop condition");
+
+    int body = consumeBlock("Expect '{' after for loop.");
+
+    if (increment != -1) {
+        int incrStmt = arena.addNode(NodeType::STMT_EXPR, previous(), std::monostate{},
+        {increment});
+
+        body = arena.addNode(NodeType::STMT_BLOCK, previous(), std::monostate{},
+            {body, incrStmt});
+    }
+
+    if (condition == -1) {
+        Token trueTok(TRUE, "true", true, 0);
+        condition = arena.addNode(NodeType::LITERAL, trueTok, true, {});
+    }
+    body = arena.addNode(NodeType::STMT_WHILE, previous(), std::monostate{}, {condition, body});
+    if (initializer != -1) {
+         body = arena.addNode(NodeType::STMT_BLOCK, previous(), std::monostate{}, {initializer, body});
+    }
+
+    return body;
+}
+
 int Parser::whileStatement() {
     int condition = consumeCondition("while");
     int body = consumeBlock("Expect '{' after 'while'");

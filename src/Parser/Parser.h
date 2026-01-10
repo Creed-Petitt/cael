@@ -38,6 +38,7 @@ private:
 
     int ifStatement();
     int whileStatement();
+    int forStatement();
     int statement();
     int echoStatement();
     int expressionStatement();
