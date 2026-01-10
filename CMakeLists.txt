@@ -3,6 +3,8 @@ project(cipr)
 
 set(CMAKE_CXX_STANDARD 17)
 
+include_directories(src)
+
 add_executable(cipr src/main.cpp
         src/Token/Token.h
         src/Scanner/Scanner.h
