@@ -7,6 +7,10 @@
 #include <string>
 #include <utility>
 #include <variant>
+#include <memory>
+#include <vector>
+
+struct Callable;
 
 enum TokenType {
     // Single-character
@@ -27,7 +31,13 @@ enum TokenType {
     EOF_TOKEN
 };
 
-using Literal = std::variant<std::monostate, std::string, double, bool>;
+using Literal = std::variant<
+    std::monostate,
+    std::string,
+    double,
+    bool,
+    std::shared_ptr<Callable>
+>;
 
 struct Token {
     const TokenType type;

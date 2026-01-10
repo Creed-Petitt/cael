@@ -4,6 +4,13 @@
 
 #include "Interpreter.h"
 #include "RuntimeError.h"
+#include "../Native/NativeFunctions.h"
+
+Interpreter::Interpreter(Arena& arena) : arena(arena) {
+    globals = std::make_shared<Environment>();
+    environment = globals;
+    globals->define("clock", std::make_shared<NativeClock>());
+}
 
 void Interpreter::interpret(const int rootIndex) {
     try {
@@ -35,6 +42,9 @@ void Interpreter::execute(const int index) {
             break;
         case NodeType::STMT_WHILE:
             visitWhileStmt(node);
+            break;
+        case NodeType::STMT_FUNCTION:
+            visitFunctionStmt(node, index);
             break;
         default:
             evaluate(index);
@@ -80,6 +90,11 @@ void Interpreter::visitIfStmt(const Node& node) {
     }
 }
 
+void Interpreter::visitFunctionStmt(const Node& node, int index) {
+    auto function = std::make_shared<Function>(index, arena, environment);
+    environment->define(node.op.lexeme, function);
+}
+
 void Interpreter::visitStmtList(const Node& node) {
     for (const int childIndex : node.children) {
         execute(childIndex);
@@ -116,6 +131,8 @@ Literal Interpreter::evaluate(const int index) {
            return visitAssignmentExpr(node);
         case NodeType::LOGICAL:
             return visitLogicalExpr(node);
+        case NodeType::CALL:
+            return visitCallExpr(node);
         case NodeType::LITERAL:
             return visitLiteral(node);
         case NodeType::GROUPING:
@@ -143,6 +160,29 @@ Literal Interpreter::visitLogicalExpr(const Node &node) {
     }
 
     return evaluate(node.children[1]);
+}
+
+Literal Interpreter::visitCallExpr(const Node& node) {
+    const Literal callee = evaluate(node.children[0]);
+
+    std::vector<Literal> arguments;
+    for (size_t i = 1; i < node.children.size(); i++) {
+        arguments.push_back(evaluate(node.children[i]));
+    }
+
+    if (!std::holds_alternative<std::shared_ptr<Callable>>(callee)) {
+        throw RuntimeError(node.op, "Can only call functions and classes.");
+    }
+
+    const auto function = std::get<std::shared_ptr<Callable>>(callee);
+
+    if (arguments.size() != static_cast<size_t>(function->arity())) {
+        throw RuntimeError(node.op, "Expected " +
+            std::to_string(function->arity()) + " arguments but got " +
+            std::to_string(arguments.size()) + ".");
+    }
+
+    return function->call(*this, arguments);
 }
 
 Literal Interpreter::visitVarExpr(const Node &node) const {
@@ -271,5 +311,10 @@ std::string Interpreter::stringify(const Literal& value) {
     }
 
     if (std::holds_alternative<std::string>(value)) return std::get<std::string>(value);
+
+    if (std::holds_alternative<std::shared_ptr<Callable>>(value)) {
+        return std::get<std::shared_ptr<Callable>>(value)->toString();
+    }
+
     return "unknown";
 }

@@ -31,6 +31,7 @@ private:
 
     int declaration();
     int varDeclaration();
+    int function(const std::string& kind);
 
     int consumeCondition(const std::string& name);
     std::vector<int> block();
@@ -52,6 +53,8 @@ private:
     int term();
     int factor();
     int unary();
+    int call();
+    int finishCall(int callee);
     int primary();
 
     void synchronize();

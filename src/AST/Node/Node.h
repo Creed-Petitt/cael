@@ -19,6 +19,7 @@ enum class NodeType {
     LOGICAL,
     ASSIGN,
     VAR_EXPR,
+    CALL,
     STMT_LIST,
     STMT_ECHO,
     STMT_EXPR,
@@ -26,6 +27,7 @@ enum class NodeType {
     STMT_BLOCK,
     STMT_IF,
     STMT_WHILE,
+    STMT_FUNCTION,
 };
 
 struct Node {

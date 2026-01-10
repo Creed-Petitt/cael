@@ -7,18 +7,21 @@
 
 #include "../AST/Node/Node.h"
 #include "../Environment/Environment.h"
+#include "Callable.h"
+#include "Function.h"
 #include <iostream>
 
 class Interpreter {
+    friend class Function;
 public:
-    explicit Interpreter(Arena& arena) : arena(arena) {
-        environment = std::make_shared<Environment>();
-    }
+    explicit Interpreter(Arena& arena);
 
     void interpret(int rootIndex);
+    Arena& getArena() const { return arena; }
 
 private:
     Arena& arena;
+    std::shared_ptr<Environment> globals;
     std::shared_ptr<Environment> environment;
 
     Literal evaluate(int index);
@@ -33,8 +36,10 @@ private:
     Literal visitVarExpr(const Node& node) const;
     Literal visitAssignmentExpr(const Node& node);
     Literal visitLogicalExpr(const Node& node);
+    Literal visitCallExpr(const Node& node);
 
     void visitBlockStmt(const Node& node);
+    void visitFunctionStmt(const Node& node, int index);
     void visitWhileStmt(const Node& node);
     void visitIfStmt(const Node& node);
     void visitEchoStmt(const Node& node);

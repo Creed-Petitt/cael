@@ -32,6 +32,7 @@ std::vector<int> Parser::block() {
 
 int Parser::declaration() {
     try {
+        if (match({FN})) return function("function");
         if (match({LET})) {
             return varDeclaration();
         }
@@ -78,6 +79,35 @@ int Parser::varDeclaration() {
     consume(SEMICOLON, "Expected ';' after declaration");
 
     return arena.addNode(NodeType::STMT_VAR_DECL, name, std::monostate{}, {initializer});
+}
+
+int Parser::function(const std::string& kind) {
+    const Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
+    consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+
+    std::vector<int> parameters;
+    if (!check(RIGHT_PAREN)) {
+        do {
+            if (parameters.size() >= 255) {
+                error(peek(), "Can't have more than 255 parameters.");
+            }
+            const Token paramName = consume(IDENTIFIER, "Expect parameter name.");
+            int paramNode = arena.addNode(NodeType::VAR_EXPR, paramName, std::monostate{},
+                {});
+            parameters.push_back(paramNode);
+        } while (match({COMMA}));
+    }
+    consume(RIGHT_PAREN, "Expect ')' after parameters.");
+
+    consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
+    const std::vector<int> bodyStmts = block();
+    const int bodyNode = arena.addNode(NodeType::STMT_BLOCK, previous(), std::monostate{}, bodyStmts);
+
+    std::vector<int> children;
+    children.insert(children.end(), parameters.begin(), parameters.end());
+    children.push_back(bodyNode);
+
+    return arena.addNode(NodeType::STMT_FUNCTION, name, std::monostate{}, children);
 }
 
 int Parser::consumeBlock(const std::string& errorMessage) {
@@ -131,7 +161,7 @@ int Parser::forStatement() {
     }
 
     if (condition == -1) {
-        Token trueTok(TRUE, "true", true, 0);
+        const Token trueTok(TRUE, "true", true, 0);
         condition = arena.addNode(NodeType::LITERAL, trueTok, true, {});
     }
     body = arena.addNode(NodeType::STMT_WHILE, previous(), std::monostate{}, {condition, body});
@@ -295,7 +325,41 @@ int Parser::unary() {
             {rightIndex});
     }
 
-    return primary();
+    return call();
+}
+
+int Parser::call() {
+    int expr = primary();
+
+    while (true) {
+        if (match({LEFT_PAREN})) {
+            expr = finishCall(expr);
+        } else {
+            break;
+        }
+    }
+
+    return expr;
+}
+
+int Parser::finishCall(const int callee) {
+    std::vector<int> arguments;
+    if (!check(RIGHT_PAREN)) {
+        do {
+            if (arguments.size() >= 255) {
+                error(peek(), "Can't have more than 255 arguments.");
+            }
+            arguments.push_back(expression());
+        } while (match({COMMA}));
+    }
+
+    const Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");
+
+    std::vector<int> children;
+    children.push_back(callee);
+    children.insert(children.end(), arguments.begin(), arguments.end());
+
+    return arena.addNode(NodeType::CALL, paren, std::monostate{}, children);
 }
 
 int Parser::primary() {

@@ -51,6 +51,8 @@ std::string AstPrinter::print(const int nodeIdx) {
             return parenthesize("if", node.children);
         case NodeType::STMT_WHILE:
             return parenthesize("while", node.children);
+        case NodeType::CALL:
+            return parenthesize("call", node.children);
     }
     return "";
 }
