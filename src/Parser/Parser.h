@@ -56,6 +56,8 @@ private:
     int unary();
     int call();
     int finishCall(int callee);
+    int finishIndex(int callee);
+    int array();
     int primary();
 
     void synchronize();

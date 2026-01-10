@@ -29,6 +29,8 @@ enum class NodeType {
     STMT_WHILE,
     STMT_FUNCTION,
     STMT_RETURN,
+    ARRAY,
+    INDEX_GET,
 };
 
 struct Node {

@@ -53,6 +53,10 @@ std::string AstPrinter::print(const int nodeIdx) {
             return parenthesize("while", node.children);
         case NodeType::CALL:
             return parenthesize("call", node.children);
+        case NodeType::ARRAY:
+            return parenthesize("array", node.children);
+        case NodeType::INDEX_GET:
+            return parenthesize("index", node.children);
     }
     return "";
 }

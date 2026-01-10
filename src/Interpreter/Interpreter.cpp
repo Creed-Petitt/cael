@@ -10,7 +10,12 @@
 Interpreter::Interpreter(Arena& arena) : arena(arena) {
     globals = std::make_shared<Environment>();
     environment = globals;
+
     globals->define("clock", std::make_shared<NativeClock>());
+    globals->define("run", std::make_shared<NativeRun>());
+    globals->define("read_file", std::make_shared<NativeReadFile>());
+    globals->define("write_file", std::make_shared<NativeWriteFile>());
+    globals->define("size", std::make_shared<NativeSize>());
 }
 
 void Interpreter::interpret(const int rootIndex) {
@@ -145,6 +150,10 @@ Literal Interpreter::evaluate(const int index) {
             return visitLogicalExpr(node);
         case NodeType::CALL:
             return visitCallExpr(node);
+        case NodeType::ARRAY:
+            return visitArrayExpr(node);
+        case NodeType::INDEX_GET:
+            return visitIndexGet(node);
         case NodeType::LITERAL:
             return visitLiteral(node);
         case NodeType::GROUPING:
@@ -195,6 +204,36 @@ Literal Interpreter::visitCallExpr(const Node& node) {
     }
 
     return function->call(*this, arguments);
+}
+
+Literal Interpreter::visitArrayExpr(const Node& node) {
+    auto list = std::make_shared<LiteralVector>();
+    for (const int childIdx : node.children) {
+        list->elements.push_back(evaluate(childIdx));
+    }
+    return list;
+}
+
+Literal Interpreter::visitIndexGet(const Node& node) {
+    const Literal target = evaluate(node.children[0]);
+    const Literal index = evaluate(node.children[1]);
+
+    if (!std::holds_alternative<std::shared_ptr<LiteralVector>>(target)) {
+        throw RuntimeError(node.op, "Only arrays can be indexed.");
+    }
+
+    if (!std::holds_alternative<double>(index)) {
+        throw RuntimeError(node.op, "Index must be a number.");
+    }
+
+    const auto list = std::get<std::shared_ptr<LiteralVector>>(target);
+    const int i = static_cast<int>(std::get<double>(index));
+
+    if (i < 0 || i >= list->elements.size()) {
+        throw RuntimeError(node.op, "Array index out of bounds.");
+    }
+
+    return list->elements[i];
 }
 
 Literal Interpreter::visitVarExpr(const Node &node) const {
@@ -326,6 +365,17 @@ std::string Interpreter::stringify(const Literal& value) {
 
     if (std::holds_alternative<std::shared_ptr<Callable>>(value)) {
         return std::get<std::shared_ptr<Callable>>(value)->toString();
+    }
+
+    if (std::holds_alternative<std::shared_ptr<LiteralVector>>(value)) {
+        std::string result = "[";
+        const auto list = std::get<std::shared_ptr<LiteralVector>>(value);
+        for (size_t i = 0; i < list->elements.size(); ++i) {
+            result += stringify(list->elements[i]);
+            if (i < list->elements.size() - 1) result += ", ";
+        }
+        result += "]";
+        return result;
     }
 
     return "unknown";

@@ -37,6 +37,8 @@ private:
     Literal visitAssignmentExpr(const Node& node);
     Literal visitLogicalExpr(const Node& node);
     Literal visitCallExpr(const Node& node);
+    Literal visitIndexGet(const Node& node);
+    Literal visitArrayExpr(const Node& node);
 
     void visitBlockStmt(const Node& node);
     void visitFunctionStmt(const Node& node, int index);

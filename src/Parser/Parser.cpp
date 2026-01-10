@@ -350,12 +350,20 @@ int Parser::call() {
     while (true) {
         if (match({LEFT_PAREN})) {
             expr = finishCall(expr);
+        } else if (match({LEFT_BRACKET})) {
+            expr = finishIndex(expr);
         } else {
             break;
         }
     }
 
     return expr;
+}
+
+int Parser::finishIndex(int callee) {
+    int index = expression();
+    const Token bracket = consume(RIGHT_BRACKET, "Expect ']' after index.");
+    return arena.addNode(NodeType::INDEX_GET, bracket, std::monostate{}, {callee, index});
 }
 
 int Parser::finishCall(const int callee) {
@@ -378,6 +386,18 @@ int Parser::finishCall(const int callee) {
     return arena.addNode(NodeType::CALL, paren, std::monostate{}, children);
 }
 
+int Parser::array() {
+    const Token bracket = previous();
+    std::vector<int> elements;
+    if (!check(RIGHT_BRACKET)) {
+        do {
+            elements.push_back(expression());
+        } while (match({COMMA}));
+    }
+    consume(RIGHT_BRACKET, "Expect ']' after array elements.");
+    return arena.addNode(NodeType::ARRAY, bracket, std::monostate{}, elements);
+}
+
 int Parser::primary() {
     if (match({FALSE}))
         return arena.addNode(NodeType::LITERAL, previous(), false, {});
@@ -388,6 +408,10 @@ int Parser::primary() {
 
     if (match({NUMBER, STRING})) {
         return arena.addNode(NodeType::LITERAL, previous(), previous().literal, {});
+    }
+
+    if (match({LEFT_BRACKET})) {
+        return array();
     }
 
     if (match({LEFT_PAREN})) {
