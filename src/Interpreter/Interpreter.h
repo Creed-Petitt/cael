@@ -40,6 +40,7 @@ private:
 
     void visitBlockStmt(const Node& node);
     void visitFunctionStmt(const Node& node, int index);
+    void visitReturnStmt(const Node& node);
     void visitWhileStmt(const Node& node);
     void visitIfStmt(const Node& node);
     void visitEchoStmt(const Node& node);

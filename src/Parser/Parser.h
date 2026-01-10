@@ -40,6 +40,7 @@ private:
     int ifStatement();
     int whileStatement();
     int forStatement();
+    int returnStatement();
     int statement();
     int echoStatement();
     int expressionStatement();

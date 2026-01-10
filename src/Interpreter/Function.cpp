@@ -1,9 +1,10 @@
 #include "Function.h"
 #include "Interpreter.h"
+#include "Return.h"
 #include "../AST/Node/Node.h"
 #include "../Environment/Environment.h"
 
-Function::Function(const int declarationIdx, Arena& arena, std::shared_ptr<Environment> closure)
+Function::Function(int declarationIdx, Arena& arena, std::shared_ptr<Environment> closure)
     : declarationIdx(declarationIdx), arena(arena), closure(std::move(closure)) {}
 
 int Function::arity() {
@@ -21,7 +22,11 @@ Literal Function::call(Interpreter& interpreter, const std::vector<Literal> argu
     }
 
     const Node& body = arena.get(decl.children.back());
-    interpreter.executeBlock(body.children, environment);
+    try {
+        interpreter.executeBlock(body.children, environment);
+    } catch (const Return& returnValue) {
+        return returnValue.value;
+    }
 
     return std::monostate{};
 }

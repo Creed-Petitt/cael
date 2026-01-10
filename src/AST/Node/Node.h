@@ -28,6 +28,7 @@ enum class NodeType {
     STMT_IF,
     STMT_WHILE,
     STMT_FUNCTION,
+    STMT_RETURN,
 };
 
 struct Node {

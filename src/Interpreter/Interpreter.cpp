@@ -4,6 +4,7 @@
 
 #include "Interpreter.h"
 #include "RuntimeError.h"
+#include "Return.h"
 #include "../Native/NativeFunctions.h"
 
 Interpreter::Interpreter(Arena& arena) : arena(arena) {
@@ -45,6 +46,9 @@ void Interpreter::execute(const int index) {
             break;
         case NodeType::STMT_FUNCTION:
             visitFunctionStmt(node, index);
+            break;
+        case NodeType::STMT_RETURN:
+            visitReturnStmt(node);
             break;
         default:
             evaluate(index);
@@ -93,6 +97,14 @@ void Interpreter::visitIfStmt(const Node& node) {
 void Interpreter::visitFunctionStmt(const Node& node, int index) {
     auto function = std::make_shared<Function>(index, arena, environment);
     environment->define(node.op.lexeme, function);
+}
+
+void Interpreter::visitReturnStmt(const Node& node) {
+    Literal value = std::monostate{};
+    if (!node.children.empty() && node.children[0] != -1) {
+        value = evaluate(node.children[0]);
+    }
+    throw Return(value);
 }
 
 void Interpreter::visitStmtList(const Node& node) {

@@ -60,6 +60,10 @@ int Parser::statement() {
         return forStatement();
     }
 
+    if (match({RETURN})) {
+        return returnStatement();
+    }
+
     if (match({LEFT_BRACE})) {
         const std::vector<int> statements = block();
         return arena.addNode(NodeType::STMT_BLOCK, previous(), std::monostate{}, statements);
@@ -170,6 +174,18 @@ int Parser::forStatement() {
     }
 
     return body;
+}
+
+int Parser::returnStatement() {
+    const Token keyword = previous();
+    int value = -1;
+    if (!check(SEMICOLON)) {
+        value = expression();
+    }
+
+    consume(SEMICOLON, "Expect ';' after return value.");
+
+    return arena.addNode(NodeType::STMT_RETURN, keyword, std::monostate{}, {value});
 }
 
 int Parser::whileStatement() {
