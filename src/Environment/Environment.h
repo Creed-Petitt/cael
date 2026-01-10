@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include "../Token/Token.h"
+#include "Token/Token.h"
 
 class Environment {
 public:

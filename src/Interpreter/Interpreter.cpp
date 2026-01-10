@@ -3,9 +3,9 @@
 //
 
 #include "Interpreter.h"
-#include "RuntimeError.h"
-#include "Return.h"
-#include "../Native/NativeFunctions.h"
+#include "Common/RuntimeError.h"
+#include "Common/Return.h"
+#include "Native/NativeFunctions.h"
 
 Interpreter::Interpreter(Arena& arena) : arena(arena) {
     globals = std::make_shared<Environment>();

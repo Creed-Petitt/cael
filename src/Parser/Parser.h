@@ -9,8 +9,8 @@
 #include <initializer_list>
 #include <stdexcept>
 
-#include "../Token/Token.h"
-#include "../AST/Node/Node.h"
+#include "Token/Token.h"
+#include "AST/Node/Node.h"
 
 class Parser {
 public:

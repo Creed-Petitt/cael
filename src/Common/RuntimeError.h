@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include "../Token/Token.h"
+#include "Token/Token.h"
 
 class RuntimeError final : public std::runtime_error {
 public:

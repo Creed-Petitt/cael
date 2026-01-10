@@ -4,7 +4,7 @@
 
 #include "Environment.h"
 
-#include "../Interpreter/RuntimeError.h"
+#include "Common/RuntimeError.h"
 
 void Environment::define(const std::string& name, const Literal& value) {
     values[name] = value;

@@ -1,7 +1,7 @@
 #ifndef CIPR_FUNCTION_H
 #define CIPR_FUNCTION_H
 
-#include "Callable.h"
+#include "Interpreter/Callable.h"
 #include <memory>
 #include <vector>
 #include <string>

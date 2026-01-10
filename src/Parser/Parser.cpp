@@ -6,7 +6,7 @@
 
 #include <iostream>
 #include <ostream>
-#include "../Core/Core.h"
+#include "Core/Core.h"
 
 int Parser::parse() {
     std::vector<int> statements;

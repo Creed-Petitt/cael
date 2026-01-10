@@ -2,7 +2,7 @@
 #define CIPR_RETURN_H
 
 #include <exception>
-#include "../Token/Token.h"
+#include "Token/Token.h"
 
 struct Return final : std::exception {
     const Literal value;

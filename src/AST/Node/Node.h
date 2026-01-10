@@ -9,7 +9,7 @@
 #include <vector>
 #include <variant>
 #include <string>
-#include "../../Token/Token.h"
+#include "Token/Token.h"
 
 enum class NodeType {
     BINARY,

@@ -5,8 +5,8 @@
 #ifndef CIPR_INTERPRETER_H
 #define CIPR_INTERPRETER_H
 
-#include "../AST/Node/Node.h"
-#include "../Environment/Environment.h"
+#include "AST/Node/Node.h"
+#include "Environment/Environment.h"
 #include "Callable.h"
 #include "Function.h"
 #include <iostream>
