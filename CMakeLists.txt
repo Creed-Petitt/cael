@@ -12,10 +12,9 @@ add_executable(cipr src/main.cpp
         src/Core/Core.cpp
         src/Core/Core.h
         src/Token/Token.cpp
-        src/AST/Node/Node.cpp
-        src/AST/Node/Node.h
-        src/AST/AstPrinter/AstPrinter.cpp
-        src/AST/AstPrinter/AstPrinter.h
+        src/AST/Node.h
+        src/AST/AstPrinter.cpp
+        src/AST/AstPrinter.h
         src/Parser/Parser.cpp
         src/Parser/Parser.h
         src/Interpreter/Interpreter.cpp
