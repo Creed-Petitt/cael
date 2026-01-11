@@ -1,7 +1,10 @@
 #ifndef CIPR_NATIVE_CORE_H
 #define CIPR_NATIVE_CORE_H
 
+#include "Interpreter/Interpreter.h"
 #include "Interpreter/Callable.h"
+#include "Scanner/Scanner.h"
+#include "Parser/Parser.h"
 #include <ctime>
 #include <cstdio>
 #include <memory>
@@ -9,95 +12,136 @@
 #include <string>
 #include <unistd.h>
 #include <climits>
+#include <thread>
+#include <chrono>
+#include <fstream>
+#include <sstream>
+#include <filesystem>
+#include <random>
 
-struct NativeClock final : Callable {
-    int arity() override {
-        return 0;
+struct NativeTime final : Callable {
+    int arity() override { return 0; }
+    Literal call(Interpreter&, std::vector<Literal>) override {
+        auto now = std::chrono::system_clock::now();
+        auto duration = now.time_since_epoch();
+        return std::chrono::duration<double>(duration).count();
     }
-
-    Literal call(Interpreter &, std::vector<Literal>) override {
-        return static_cast<double>(clock()) / CLOCKS_PER_SEC;
-    }
-
-    std::string toString() override {
-        return "<native fn clock>";
-    }
+    std::string toString() override { return "<native fn time>"; }
 };
 
 struct NativeRun final : Callable {
-    int arity() override {
-        return 1;
-    }
-
-    Literal call(Interpreter &, const std::vector<Literal> args) override {
-        if (!std::holds_alternative<std::string>(args[0]))
-            return std::monostate{};
-        const auto cmd = std::get<std::string>(args[0]);
+    int arity() override { return 1; }
+    Literal call(Interpreter&, std::vector<Literal> args) override {
+        if (!std::holds_alternative<std::string>(args[0])) return std::monostate{};
+        std::string cmd = std::get<std::string>(args[0]);
         std::array<char, 128> buf{};
         std::string res;
-        const std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
-        if (!pipe)
-            return std::string("Error: Pipe failed");
-        while (fgets(buf.data(), buf.size(), pipe.get()) != nullptr)
-            res += buf.data();
+        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+        if (!pipe) return std::string("Error: Pipe failed");
+        while (fgets(buf.data(), buf.size(), pipe.get()) != nullptr) res += buf.data();
         return res;
     }
-
-    std::string toString() override {
-        return "<native fn run>";
-    }
+    std::string toString() override { return "<native fn run>"; }
 };
 
 struct NativeEnv final : Callable {
-    int arity() override {
-        return 1;
-    }
-
-    Literal call(Interpreter &, const std::vector<Literal> args) override {
-        if (!std::holds_alternative<std::string>(args[0]))
-            return std::monostate{};
-        if (const char *val = std::getenv(std::get<std::string>(args[0]).c_str()))
-            return std::string(val);
+    int arity() override { return 1; }
+    Literal call(Interpreter&, std::vector<Literal> args) override {
+        if (!std::holds_alternative<std::string>(args[0])) return std::monostate{};
+        const char* val = std::getenv(std::get<std::string>(args[0]).c_str());
+        if (val) return std::string(val);
         return std::monostate{};
     }
-
     std::string toString() override { return "<native fn env>"; }
 };
 
-
 struct NativeCwd final : Callable {
-    int arity() override {
-        return 0;
-    }
-
-    Literal call(Interpreter &, std::vector<Literal>) override {
+    int arity() override { return 0; }
+    Literal call(Interpreter&, std::vector<Literal>) override {
         char cwd[PATH_MAX];
         if (getcwd(cwd, sizeof(cwd)) != nullptr) {
             return std::string(cwd);
         }
         return std::monostate{};
     }
-
-    std::string toString() override {
-        return "<native fn cwd>";
-    }
+    std::string toString() override { return "<native fn cwd>"; }
 };
 
-
 struct NativeCd final : Callable {
+    int arity() override { return 1; }
+    Literal call(Interpreter&, const std::vector<Literal> args) override {
+        if (!std::holds_alternative<std::string>(args[0])) return false;
+        const std::string path = std::get<std::string>(args[0]);
+        return chdir(path.c_str()) == 0;
+    }
+    std::string toString() override { return "<native fn cd>"; }
+};
+
+struct NativeInclude final : Callable {
+    int arity() override { return 1; }
+    Literal call(Interpreter& interpreter, std::vector<Literal> args) override {
+        if (!std::holds_alternative<std::string>(args[0])) return false;
+        auto filename = std::get<std::string>(args[0]);
+        
+        // 1. Check Local Path
+        std::string final_path = filename;
+        std::ifstream file(final_path);
+
+        // 2. Check Global Library Path (~/.cipr/libs/)
+        if (!file.is_open()) {
+            if (const char* home = std::getenv("HOME")) {
+                final_path = std::string(home) + "/.cipr/libs/" + filename;
+                file.open(final_path);
+            }
+        }
+
+        if (!file.is_open()) return false;
+
+        std::stringstream buf;
+        buf << file.rdbuf();
+        
+        Scanner scanner(buf.str());
+        auto tokens = scanner.scanTokens();
+        Parser parser(tokens, interpreter.getArena());
+        int root = parser.parse();
+        interpreter.interpret(root);
+        return true;
+    }
+    std::string toString() override { return "<native fn include>"; }
+};
+
+struct NativeRand final : Callable {
+    int arity() override { return 1; }
+    Literal call(Interpreter&, const std::vector<Literal> args) override {
+        if (!std::holds_alternative<double>(args[0])) return 0.0;
+        const int max = static_cast<int>(std::get<double>(args[0]));
+        if (max <= 0) return 0.0;
+        
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, max - 1);
+        
+        return static_cast<double>(dis(gen));
+    }
+    std::string toString() override { return "<native fn rand>"; }
+};
+
+struct NativeSleep final : Callable {
     int arity() override {
         return 1;
     }
 
-    Literal call(Interpreter &, const std::vector<Literal> args) override {
-        if (!std::holds_alternative<std::string>(args[0]))
-            return false;
-        const auto path = std::get<std::string>(args[0]);
-        return chdir(path.c_str()) == 0;
+    Literal call(Interpreter&, const std::vector<Literal> args) override {
+        if (!std::holds_alternative<double>(args[0]))
+            return std::monostate{};
+        const int ms = static_cast<int>(std::get<double>(args[0]));
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+
+        return std::monostate{};
     }
 
     std::string toString() override {
-        return "<native fn cd>";
+        return "<native fn sleep>";
     }
 };
 
