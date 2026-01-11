@@ -1,32 +1,9 @@
-//
-// Created by creed on 1/4/26.
-//
-
 #include "Scanner.h"
-
+#include <map>
 #include <utility>
-#include "../Core/Core.h"
+#include "Core/Core.h"
 
-const std::unordered_map<std::string, TokenType> Scanner::keywords = {
-    {"class",  CLASS},
-    {"else",   ELSE},
-    {"false",  FALSE},
-    {"for",    FOR},
-    {"fn",     FN},
-    {"if",     IF},
-    {"null",   TOK_NULL},
-    {"none",   TOK_NULL},
-    {"echo",   ECHO},
-    {"return", RETURN},
-    {"super",  SUPER},
-    {"this",   THIS},
-    {"true",   TRUE},
-    {"let",    LET},
-    {"while",  WHILE}
-};
-
-Scanner::Scanner(std::string source)
-    : source_(std::move(source)) {}
+Scanner::Scanner(std::string source) : source_(std::move(source)) {}
 
 std::vector<Token> Scanner::scanTokens() {
     while (!isAtEnd()) {
@@ -38,57 +15,39 @@ std::vector<Token> Scanner::scanTokens() {
     return tokens;
 }
 
-void Scanner::addToken(const TokenType type) {
-    addToken(type, std::monostate{});
-}
-
-void Scanner::addToken(TokenType type, const Literal& literal) {
-    std::string text = source_.substr(start, current - start);
-
-    tokens.emplace_back(type, text, literal, line);
-}
-
 void Scanner::scanToken() {
-    switch (const char c = advance()) {
+    const char c = advance();
+    switch (c) {
         case '(': addToken(LEFT_PAREN); break;
         case ')': addToken(RIGHT_PAREN); break;
         case '{': addToken(LEFT_BRACE); break;
         case '}': addToken(RIGHT_BRACE); break;
         case '[': addToken(LEFT_BRACKET); break;
         case ']': addToken(RIGHT_BRACKET); break;
+        case '$': addToken(DOLLAR); break;
         case ',': addToken(COMMA); break;
         case '.': addToken(DOT); break;
         case '-': addToken(MINUS); break;
         case '+': addToken(PLUS); break;
         case ';': addToken(SEMICOLON); break;
         case '*': addToken(STAR); break;
-        case '$': addToken(DOLLAR); break;
 
-        case '!': addToken(match('=') ? BANG_EQUAL : BANG); break;
-        case '=': addToken(match('=') ? EQUAL_EQUAL : EQUAL); break;
-        case '<': addToken(match('=') ? LESS_EQUAL : LESS); break;
-        case '>': addToken(match('=') ? GREATER_EQUAL : GREATER); break;
-
-        case '&' :
-            if (match('&')) {
-                addToken(AND);
-                break;
-            }
-
-            Core::error(line, "Unexpected character: '&'. Did you mean '&&'?");
+        case '!':
+            addToken(match('=') ? BANG_EQUAL : BANG);
             break;
-
-        case '|' :
-            if (match('|')) {
-                addToken(OR);
-                break;
-            }
-
-            Core::error(line, "Unexpected character: '|'. Did you mean '||'?");
+        case '=':
+            addToken(match('=') ? EQUAL_EQUAL : EQUAL);
+            break;
+        case '<':
+            addToken(match('=') ? LESS_EQUAL : LESS);
+            break;
+        case '>':
+            addToken(match('=') ? GREATER_EQUAL : GREATER);
             break;
 
         case '/':
             if (match('/')) {
+                // A comment goes until the end of the line.
                 while (peek() != '\n' && !isAtEnd())
                     advance();
             } else {
@@ -96,17 +55,17 @@ void Scanner::scanToken() {
             }
             break;
 
+        case '"': string('"'); break;
+        case '\'': string('\''); break;
+
         case ' ':
         case '\r':
         case '\t':
+            // Ignore whitespace.
             break;
 
         case '\n':
             line++;
-            break;
-
-        case '"':
-            string();
             break;
 
         default:
@@ -145,13 +104,43 @@ char Scanner::peek() const {
 }
 
 char Scanner::peekNext() const {
-    if (current + 1 >= source_.length()) return '\0';
+    if (current + 1 >= source_.length())
+        return '\0';
     return source_[current + 1];
 }
 
-void Scanner::string() {
+void Scanner::identifier() {
+    while (isAlphaNumeric(peek()))
+        advance();
+
+    const std::string text = source_.substr(start, current - start);
+    static const std::map<std::string, TokenType> keywords = {
+        {"and", AND},
+        {"class", CLASS},
+        {"else", ELSE},
+        {"false", FALSE},
+        {"fn", FN},
+        {"for", FOR},
+        {"if", IF},
+        {"null", TOK_NULL},
+        {"or", OR},
+        {"echo", ECHO},
+        {"return", RETURN},
+        {"super", SUPER},
+        {"this", THIS},
+        {"true", TRUE},
+        {"let", LET},
+        {"while", WHILE}
+    };
+
+    const auto it = keywords.find(text);
+    TokenType type = it != keywords.end() ? it->second : IDENTIFIER;
+    addToken(type);
+}
+
+void Scanner::string(char delimiter) {
     std::string value;
-    while (peek() != '"' && !isAtEnd()) {
+    while (peek() != delimiter && !isAtEnd()) {
         if (peek() == '\n')
             line++;
         
@@ -163,8 +152,8 @@ void Scanner::string() {
                 case 'r': value += '\r'; break;
                 case '\\': value += '\\'; break;
                 case '"': value += '"'; break;
+                case '\'': value += '\''; break;
                 default: 
-                    // If it's not a known escape, just keep the backslash and the char
                     value += '\\';
                     value += peek();
                     break;
@@ -180,19 +169,13 @@ void Scanner::string() {
         return;
     }
 
-    advance(); // The closing "
-
+    advance(); // The closing delimiter
     addToken(STRING, value);
 }
 
-bool Scanner::isDigit(const char c)  {
-    return c >= '0' && c <= '9';
-}
-
-void Scanner::number()  {
-    while (isDigit(peek())) {
+void Scanner::number() {
+    while (isDigit(peek()))
         advance();
-    }
 
     if (peek() == '.' && isDigit(peekNext())) {
         advance();
@@ -201,28 +184,26 @@ void Scanner::number()  {
             advance();
     }
 
-    double value = std::stod(source_.substr(start, current - start));
-    addToken(NUMBER, value);
+    addToken(NUMBER, std::stod(source_.substr(start, current - start)));
+}
+
+bool Scanner::isDigit(const char c) {
+    return c >= '0' && c <= '9';
 }
 
 bool Scanner::isAlpha(const char c) {
-    return (c >= 'a' && c <= 'z') ||
-           (c >= 'A' && c <= 'Z') ||
-            c == '_';
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
 bool Scanner::isAlphaNumeric(const char c) {
     return isAlpha(c) || isDigit(c);
 }
 
-void Scanner::identifier() {
-    while (isAlphaNumeric(peek()))
-        advance();
+void Scanner::addToken(const TokenType type) {
+    addToken(type, std::monostate{});
+}
 
+void Scanner::addToken(const TokenType type, const Literal& literal) {
     const std::string text = source_.substr(start, current - start);
-
-    const auto it = keywords.find(text);
-    const TokenType type = (it == keywords.end()) ? IDENTIFIER : it->second;
-
-    addToken(type);
+    tokens.emplace_back(type, text, literal, line);
 }

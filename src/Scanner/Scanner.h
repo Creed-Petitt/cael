@@ -38,7 +38,7 @@ private:
 
     char peekNext() const;
 
-    void string();
+    void string(char delimiter);
 
     static bool isDigit(char c) ;
 
