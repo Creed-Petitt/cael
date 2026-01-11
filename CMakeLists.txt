@@ -25,7 +25,8 @@ add_executable(cipr src/main.cpp
         src/Interpreter/Callable.h
         src/Common/Return.h
         src/Common/RuntimeError.h
-        src/Native/NativeFunctions.h
-
+        src/Native/NativeRegistry.cpp
+        src/Native/NativeRegistry.h
         src/Environment/Environment.cpp
-        src/Environment/Environment.h)
+        src/Environment/Environment.h
+)
