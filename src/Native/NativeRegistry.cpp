@@ -9,6 +9,8 @@ void NativeRegistry::registerAll(const std::shared_ptr<Environment>& env) {
     env->define("clock", std::make_shared<NativeClock>());
     env->define("run", std::make_shared<NativeRun>());
     env->define("env", std::make_shared<NativeEnv>());
+    env->define("cwd", std::make_shared<NativeCwd>());
+    env->define("cd", std::make_shared<NativeCd>());
 
     // File
     env->define("read_file", std::make_shared<NativeReadFile>());
