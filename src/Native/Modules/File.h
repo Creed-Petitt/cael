@@ -4,6 +4,8 @@
 #include "Interpreter/Callable.h"
 #include <fstream>
 #include <sstream>
+#include <filesystem>
+#include <vector>
 
 struct NativeReadFile final : Callable {
     int arity() override {
@@ -40,10 +42,36 @@ struct NativeWriteFile final : Callable {
         file << std::get<std::string>(args[1]);
         return true;
     }
+    std::string toString() override { return "<native fn write_file>"; }
+};
+
+struct NativeLs final : Callable {
+    int arity() override {
+        return 1;
+    }
+
+    Literal call(Interpreter&, const std::vector<Literal> args) override {
+        std::string path = ".";
+        if (std::holds_alternative<std::string>(args[0])) {
+            path = std::get<std::string>(args[0]);
+        }
+        auto list = std::make_shared<LiteralVector>();
+        try {
+            for (const auto& entry : std::filesystem::directory_iterator(path)) {
+                list->elements.emplace_back(entry.path().filename().string());
+            }
+        } catch (...) {
+            return std::monostate{};
+        }
+        return list;
+    }
 
     std::string toString() override {
-        return "<native fn write_file>";
+        return "<native fn ls>";
     }
+
 };
 
 #endif
+
+    
