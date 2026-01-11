@@ -66,9 +66,46 @@ struct NativeSplit final : Callable {
         return res;
     }
 
-    std::string toString() override {
-        return "<native fn split>";
+        std::string toString() override { return "<native fn split>"; }
+
+    };
+
+struct NativeExtract final : Callable {
+
+    int arity() override {
+        return 3;
     }
+
+    Literal call(Interpreter&, const std::vector<Literal> args) override {
+
+        if (!std::holds_alternative<std::string>(args[0]) ||
+            !std::holds_alternative<std::string>(args[1]) ||
+            !std::holds_alternative<std::string>(args[2]))
+            return std::monostate{};
+
+        auto src = std::get<std::string>(args[0]);
+        const auto start = std::get<std::string>(args[1]);
+        const auto end = std::get<std::string>(args[2]);
+
+        size_t s_pos = src.find(start);
+
+        if (s_pos == std::string::npos)
+            return std::monostate{};
+
+        s_pos += start.length();
+        const size_t e_pos = src.find(end, s_pos);
+
+        if (e_pos == std::string::npos)
+            return std::monostate{};
+
+        return src.substr(s_pos, e_pos - s_pos);
+
+    }
+
+    std::string toString() override {
+        return "<native fn extract>";
+    }
+
 };
 
 #endif
