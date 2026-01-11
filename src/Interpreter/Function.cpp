@@ -1,7 +1,7 @@
 #include "Function.h"
 #include "Interpreter.h"
 #include "Common/Return.h"
-#include "AST/Node/Node.h"
+#include "AST/Node.h"
 #include "Environment/Environment.h"
 
 Function::Function(int declarationIdx, Arena& arena, std::shared_ptr<Environment> closure)

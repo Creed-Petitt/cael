@@ -5,9 +5,9 @@
 #ifndef CIPR_CORE_H
 #define CIPR_CORE_H
 
-#include <string>
-#include "AST/Node/Node.h"
+#include "AST/Node.h"
 #include "Interpreter/Interpreter.h"
+#include <string>
 
 class Core {
 public:

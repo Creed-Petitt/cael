@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 #include "Token/Token.h"
-#include "AST/Node/Node.h"
+#include "AST/Node.h"
 
 class Parser {
 public:

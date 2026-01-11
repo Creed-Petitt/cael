@@ -3,6 +3,8 @@
 //
 
 #include "Interpreter.h"
+
+#include "Function.h"
 #include "Common/RuntimeError.h"
 #include "Common/Return.h"
 #include "Native/NativeRegistry.h"

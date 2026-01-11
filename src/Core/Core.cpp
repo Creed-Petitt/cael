@@ -4,7 +4,7 @@
 
 #include "Core.h"
 #include "Scanner/Scanner.h"
-#include "AST/AstPrinter/AstPrinter.h"
+#include "../AST/AstPrinter.h"
 #include "Parser/Parser.h"
 #include <iostream>
 #include <fstream>
