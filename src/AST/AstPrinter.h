@@ -5,7 +5,7 @@
 #ifndef CIPR_ASTPRINTER_H
 #define CIPR_ASTPRINTER_H
 
-#include "../Node/Node.h"
+#include "Node.h"
 #include <string>
 #include <vector>
 
