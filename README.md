@@ -18,8 +18,8 @@
 
 ### One-Step Install (Linux/macOS)
 ```bash
-git clone https://github.com/creed/cipr.git
-cd cipr
+git clone https://github.com/Creed-Petitt/cipr-shell.git
+cd cipr-shell
 ./install.sh
 ```
 
@@ -119,5 +119,5 @@ Cipr is implemented as a tree-walk interpreter:
 
 ## License
 
-MIT License.
+MIT
 
