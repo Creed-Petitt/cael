@@ -154,7 +154,7 @@ int Parser::forStatement() {
     }
     consume(RIGHT_PAREN, "Expect ';' after loop condition");
 
-    int body = consumeBlock("Expect '{' after for loop.");
+    int body = statement();
 
     if (increment != -1) {
         int incrStmt = arena.addNode(NodeType::STMT_EXPR, previous(), std::monostate{},
@@ -190,7 +190,7 @@ int Parser::returnStatement() {
 
 int Parser::whileStatement() {
     int condition = consumeCondition("while");
-    int body = consumeBlock("Expect '{' after 'while'");
+    int body = statement();
 
     return arena.addNode(NodeType::STMT_WHILE, previous(), std::monostate{},
         {condition, body});
@@ -199,11 +199,11 @@ int Parser::whileStatement() {
 int Parser::ifStatement() {
     int condition = consumeCondition("if");
 
-    int thenBranch = consumeBlock("Expect '{' after if condition.");
+    int thenBranch = statement();
 
     int elseBranch = -1;
     if (match({ELSE})) {
-        elseBranch = consumeBlock("Expect '{' after else.");
+        elseBranch = statement();
     }
 
     return arena.addNode(NodeType::STMT_IF, previous(), std::monostate{},
