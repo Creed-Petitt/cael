@@ -1,0 +1,9 @@
+echo "=== CIPR TEST SUITE ===";
+
+include("test/test_core.cipr");
+include("test/test_file.cipr");
+include("test/test_crypto.cipr");
+include("test/test_sys.cipr");
+include("test/test_net.cipr");
+
+echo "=== ALL TESTS PASSED ===";

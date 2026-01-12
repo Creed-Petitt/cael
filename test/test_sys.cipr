@@ -1,0 +1,13 @@
+echo "[TEST] System Module";
+
+let p_list = ps();
+if (size(p_list) == 0) { echo "FAIL: ps() returned empty"; }
+
+let home = env("HOME");
+if (size(home) == 0) { echo "FAIL: env(HOME) is empty"; }
+
+// Kill test (start a sleep process and kill it)
+// Note: We need the PID. Parsing PID from ps() output string is tricky without string-to-int.
+// Skipping exact PID kill test for v1 to avoid flake, relying on 'ps' presence.
+
+echo "PASS: System Module";

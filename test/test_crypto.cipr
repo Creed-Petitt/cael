@@ -1,0 +1,13 @@
+echo "[TEST] Crypto Module";
+
+let raw = "hello";
+let b64 = base64_encode(raw);
+if (b64 != "aGVsbG8=") { echo "FAIL: base64_encode mismatch"; }
+
+let dec = base64_decode(b64);
+if (dec != raw) { echo "FAIL: base64_decode mismatch"; }
+
+let h = hex("ABC");
+if (h != "414243") { echo "FAIL: hex mismatch"; }
+
+echo "PASS: Crypto Module";

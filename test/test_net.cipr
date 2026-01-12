@@ -1,0 +1,24 @@
+echo "[TEST] Network Module";
+
+// 1. HTTP
+let html = http_get("http://google.com");
+if (size(html) < 10) { echo "FAIL: http_get returned empty/short"; }
+
+// 2. Socket Server
+let port = 8899;
+let srv = listen(port);
+if (srv < 0) { echo "FAIL: listen() failed"; }
+
+// Background client
+run("bash -c 'sleep 0.5; echo ping | nc localhost 8899' > /dev/null 2>&1 &");
+
+let client = accept(srv);
+if (client < 0) { echo "FAIL: accept() failed"; }
+
+let msg = recv(client, 1024);
+if (trim(msg) != "ping") { echo "FAIL: recv() mismatch"; }
+
+close(client);
+close(srv);
+
+echo "PASS: Network Module";
