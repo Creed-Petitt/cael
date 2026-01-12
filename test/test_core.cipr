@@ -1,14 +1,14 @@
 echo "[TEST] Core Module";
 
 let r = rand(100);
-if (r < 0 or r >= 100) { echo "FAIL: rand(100) out of bounds: " + r; }
+if (r < 0 or r >= 100) { echo "FAIL: rand bounds"; exit(1); }
 
 let t1 = time();
 sleep(100);
 let t2 = time();
-if ((t2 - t1) < 0.09) { echo "FAIL: sleep(100) too fast"; }
+if ((t2 - t1) < 0.09) { echo "FAIL: sleep too fast"; exit(1); }
 
 let output = run("echo hello");
-if (trim(output) != "hello") { echo "FAIL: run() output mismatch"; }
+if (trim(output) != "hello") { echo "FAIL: run output"; exit(1); }
 
 echo "PASS: Core Module";
