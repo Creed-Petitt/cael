@@ -7,6 +7,7 @@
 
 #include <utility>
 #include <vector>
+#include <deque>
 #include <variant>
 #include <string>
 #include "Token/Token.h"
@@ -76,7 +77,7 @@ public:
     }
 
 private:
-    std::vector<Node> nodes;
+    std::deque<Node> nodes;
 };
 
 #endif //CIPR_NODE_H
