@@ -114,13 +114,20 @@ struct NativeHttpGet final : Callable {
             url = url.substr(7);
 
         const size_t slash = url.find('/');
-        const std::string host = (slash == std::string::npos) ? url : url.substr(0, slash);
+        std::string host = (slash == std::string::npos) ? url : url.substr(0, slash);
         const std::string path = (slash == std::string::npos) ? "/" : url.substr(slash);
+
+        std::string port = "80";
+        const size_t colon = host.find(':');
+        if (colon != std::string::npos) {
+            port = host.substr(colon + 1);
+            host = host.substr(0, colon);
+        }
 
         addrinfo hints{}, *res;
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
-        if (getaddrinfo(host.c_str(), "80", &hints, &res) != 0)
+        if (getaddrinfo(host.c_str(), port.c_str(), &hints, &res) != 0)
             return std::monostate{};
 
         const int fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
@@ -162,13 +169,20 @@ struct NativeHttpPost final : Callable {
 
         if (url.substr(0, 7) == "http://") url = url.substr(7);
         const size_t slash = url.find('/');
-        const std::string host = (slash == std::string::npos) ? url : url.substr(0, slash);
+        std::string host = (slash == std::string::npos) ? url : url.substr(0, slash);
         const std::string path = (slash == std::string::npos) ? "/" : url.substr(slash);
+
+        std::string port = "80";
+        const size_t colon = host.find(':');
+        if (colon != std::string::npos) {
+            port = host.substr(colon + 1);
+            host = host.substr(0, colon);
+        }
 
         addrinfo hints{}, *res;
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
-        if (getaddrinfo(host.c_str(), "80", &hints, &res) != 0)
+        if (getaddrinfo(host.c_str(), port.c_str(), &hints, &res) != 0)
             return std::monostate{};
 
         const int fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
